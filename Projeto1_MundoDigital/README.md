@@ -6,7 +6,7 @@ Um sensor de presença ativará uma contagem de tempo de 5 segundos. Caso a cont
 
 ## Diagrama de Blocos
 
-[Diagrama de Blocos](http://i.imgur.com/F8vlGfa.png)
+![Diagrama de Blocos](http://i.imgur.com/F8vlGfa.png)
 
 ## Lista de Materiais
   - 2x Push Button
