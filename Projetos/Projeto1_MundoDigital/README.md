@@ -1,5 +1,5 @@
 # Alarme
-
+[Trello](https://trello.com/b/8pkMvgrf/computa%C3%A7%C3%A3o-embarcada-projeto-1)
 ## Descrição
 
 Um sensor de presença ativará uma contagem de tempo de 5 segundos. Caso a contagem chegue à 0, um buzzer atuará como um alarme. Para que o alarme seja desarmado é necessário que o usuário coloque um íma sobre o Reed Switch (sensor magnético) e aperte um botão que estará ligado ao sistema. Um botão extra servirá para ligar e desligar o sistema.
