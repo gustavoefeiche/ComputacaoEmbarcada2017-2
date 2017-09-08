@@ -496,6 +496,7 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
     <Folder Include="src\config\" />
+    <Folder Include="src\driver" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\asf.h">
@@ -991,6 +992,18 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam\utils\syscalls\gcc\syscalls.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\driver\pio_insper.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\driver\pio_insper.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\driver\pmc_insper.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\driver\pmc_insper.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\main.c">
