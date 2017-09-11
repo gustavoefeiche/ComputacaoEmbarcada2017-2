@@ -21,7 +21,7 @@
 /**
  * @brief Inclui as definições prévias do uc em uso
  */
-#include <sam4sd32c.h>
+#include <same70_xplained.h>
 
 
 /***************** 
