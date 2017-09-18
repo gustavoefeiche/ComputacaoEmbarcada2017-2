@@ -240,33 +240,30 @@ void BUTTON_handler() {
 	}
 }
 
-// void RTC_Handler(void) {
-// 	uint32_t ul_status = rtc_get_status(RTC);
-// 	
-// 	rtc_interruption_count++;
-// 	
-// 	printf("RTC INTERRUPTION %d\n", rtc_interruption_count);
-// 	
-// 	if (can_buzz)
-// 		pio_set(BUZZER_PIO, BUZZER_PIN_MASK);
-// 
-// 	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC)
-// 		rtc_clear_status(RTC, RTC_SCCR_SECCLR);
-// 	else {
-// 		if ((ul_status & RTC_SR_ALARM) == RTC_SR_ALARM) {
-// 			rtc_clear_status(RTC, RTC_SCCR_ALRCLR);
-// 			
-// 			/* Update datetime */
-// 			uint32_t hour, minute, second;
-// 			rtc_get_time(RTC, &hour, &minute, &second);
-// 			
-// 			second += 5;
-// 			
-// 			/* Set new alarm */
-// 			rtc_set_time_alarm(RTC, 0, hour, 0, minute, 1, second);
-// 		}
-// 	}
-// }
+void RTC_Handler(void) {
+	uint32_t ul_status = rtc_get_status(RTC);
+	
+	rtc_interruption_count++;
+	
+	printf("RTC INTERRUPTION %d\n", rtc_interruption_count);
+	
+	if (can_buzz)
+		pio_set(BUZZER_PIO, BUZZER_PIN_MASK);
+
+	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC)
+		rtc_clear_status(RTC, RTC_SCCR_SECCLR);
+	else {
+		if ((ul_status & RTC_SR_ALARM) == RTC_SR_ALARM) {
+			rtc_clear_status(RTC, RTC_SCCR_ALRCLR);
+			
+			/* Update datetime */
+			rtc_set_time(RTC, RTC_HOUR, RTC_MINUTE, RTC_SECOND);
+			
+			/* Set new alarm */
+			rtc_set_time_alarm(RTC, 0, hour, 0, minute, 1, RTC_SECOND + 10);
+		}
+	}
+}
 
 // Helpers
 static void pin_toggle(Pio *pio, uint32_t mask){

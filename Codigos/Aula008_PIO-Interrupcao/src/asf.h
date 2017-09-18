@@ -56,6 +56,9 @@
 #include <compiler.h>
 #include <status_codes.h>
 
+// From module: Delay routines
+#include <delay.h>
+
 // From module: GPIO - General purpose Input/Output
 #include <gpio.h>
 
@@ -86,6 +89,10 @@
 
 // From module: SAME70 XPLD LED support enabled
 #include <led.h>
+
+// From module: Sleep manager - SAM implementation
+#include <sam/sleepmgr.h>
+#include <sleepmgr.h>
 
 // From module: System Clock Control - SAME70 implementation
 #include <sysclk.h>
