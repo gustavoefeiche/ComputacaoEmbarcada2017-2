@@ -189,7 +189,7 @@ int main(void){
   USART1_init();
  
   /* Inicializa funcao de delay */
-  delay_init( sysclk_get_cpu_hz());
+  delay_init(sysclk_get_cpu_hz());
         
 	while (1) {
     sprintf(bufferTX, "%s \n", "Ola Voce");
