@@ -150,9 +150,16 @@ static void USART1_init(void){
  *
  * Retorna a quantidade de char escritos
  */
-uint32_t usart_puts(uint8_t *pstring){
-     
-  return 0;
+uint32_t usart_puts(uint8_t *pstring) {
+	uint32_t count = 0;
+	while(*pstring) {
+		if(usart_is_tx_empty(USART_COM)) {
+			usart_serial_putchar(USART_COM, *pstring);
+			pstring++;	
+			count++;
+		}
+	}	
+	return count;
 }
 
 /*
@@ -162,9 +169,19 @@ uint32_t usart_puts(uint8_t *pstring){
  *
  * Retorna a quantidade de char lidos
  */
-uint32_t usart_gets(uint8_t *pstring){
-
-  return 0;  
+uint32_t usart_gets(uint8_t *pstring) {
+	uint32_t index = 0;
+	char c = 0;
+	
+	while(c != '\n') {
+		usart_serial_getchar(USART_COM, &c);
+		pstring[index] = c;
+		index++;	
+	}
+	
+	pstring[index - 1] = '\0';
+	
+	return index;  
 }
 
 /************************************************************************/
@@ -192,9 +209,9 @@ int main(void){
   delay_init(sysclk_get_cpu_hz());
         
 	while (1) {
-    sprintf(bufferTX, "%s \n", "Ola Voce");
-    //usart_puts(bufferTX);
-   // usart_gets(bufferRX);
+    //sprintf(bufferTX, "%s \n", "Ola Voce");
+	usart_gets(bufferRX);
+	usart_puts(bufferRX);
     delay_s(1);
 	}
 }
