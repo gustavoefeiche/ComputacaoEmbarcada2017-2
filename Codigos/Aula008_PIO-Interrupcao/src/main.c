@@ -8,7 +8,7 @@
 		OLED1: PA0 (EXT1)
 		OLED2: PC30 (EXT1)
 		OLED3: PB2 (EXT1)
-	
+
 	Buttons:
 		Board: PA11
 		OLED1: PD28 (EXT1)
@@ -72,47 +72,47 @@ void BOARD_BUTTON_handler(uint32_t a, uint32_t b) {
 	uint32_t pioIntStatus;
 	pioIntStatus = pio_get_interrupt_status(BOARD_BUT_PIO);
 	UNUSED(pioIntStatus);
-	
+
 	if(pio_get_output_data_status(BOARD_LED_PIO, BOARD_LED_PIN_MASK))
 		pio_clear(BOARD_LED_PIO, BOARD_LED_PIN_MASK);
 	else
 		pio_set(BOARD_LED_PIO, BOARD_LED_PIN_MASK);
-	
+
 }
 
 void OLED_BUTTON1_handler(uint32_t a, uint32_t b) {
 	uint32_t pioIntStatus;
     pioIntStatus = pio_get_interrupt_status(OLED_BUT1_PIO);
 	UNUSED(pioIntStatus);
-	
+
 	if(pio_get_output_data_status(OLED_LED1_PIO, OLED_LED1_PIN_MASK))
 		pio_clear(OLED_LED1_PIO, OLED_LED1_PIN_MASK);
 	else
-		pio_set(OLED_LED1_PIO, OLED_LED1_PIN_MASK); 
+		pio_set(OLED_LED1_PIO, OLED_LED1_PIN_MASK);
 }
 
 void OLED_BUTTON2_handler(uint32_t a, uint32_t b) {
 	uint32_t pioIntStatus;
 	pioIntStatus = pio_get_interrupt_status(OLED_BUT2_PIO);
 	UNUSED(pioIntStatus);
-	
+
 	if(pio_get_output_data_status(OLED_LED2_PIO, OLED_LED2_PIN_MASK))
 		pio_clear(OLED_LED2_PIO, OLED_LED2_PIN_MASK);
 	else
 		pio_set(OLED_LED2_PIO, OLED_LED2_PIN_MASK);
-	
+
 }
 
 void OLED_BUTTON3_handler(uint32_t a, uint32_t b) {
 	uint32_t pioIntStatus;
 	pioIntStatus = pio_get_interrupt_status(OLED_BUT3_PIO);
 	UNUSED(pioIntStatus);
-	
+
 	if(pio_get_output_data_status(OLED_LED3_PIO, OLED_LED3_PIN_MASK))
 		pio_clear(OLED_LED3_PIO, OLED_LED3_PIN_MASK);
 	else
 		pio_set(OLED_LED3_PIO, OLED_LED3_PIN_MASK);
-	
+
 }
 
 // CONFIG
@@ -128,13 +128,13 @@ void LED_init(Pio *p_pio, uint32_t pio_id, uint32_t pin_mask, uint32_t state) {
 void BUTTON_init(Pio *p_pio, uint32_t pio_id, uint32_t pin_mask, void (*p_handler)(uint32_t, uint32_t), uint32_t interrupt_type) {
     pmc_enable_periph_clk(pio_id);
     pio_set_input(p_pio, pin_mask, PIO_PULLUP | PIO_DEBOUNCE);
-    
+
     // Config interrupt as falling edge and set handler
     pio_enable_interrupt(p_pio, pin_mask);
-	
+
 	pio_handler_set(p_pio, pio_id, pin_mask, interrupt_type, *p_handler);
-	
-	// Enable interruption for peripheral and set interrupt priority    
+
+	// Enable interruption for peripheral and set interrupt priority
     NVIC_EnableIRQ(pio_id);
     NVIC_SetPriority(pio_id, 1);
 };
@@ -143,21 +143,21 @@ void BUTTON_init(Pio *p_pio, uint32_t pio_id, uint32_t pin_mask, void (*p_handle
 int main(void) {
 	board_init();
 	sysclk_init();
-	
+
 	WATCHDOG_init();
 	LED_init(BOARD_LED_PIO, BOARD_LED_PIO_ID, BOARD_LED_PIN_MASK, 1);
 	LED_init(OLED_LED1_PIO, OLED_LED1_PIO_ID, OLED_LED1_PIN_MASK, 1);
 	LED_init(OLED_LED2_PIO, OLED_LED2_PIO_ID, OLED_LED2_PIN_MASK, 1);
 	LED_init(OLED_LED3_PIO, OLED_LED3_PIO_ID, OLED_LED3_PIN_MASK, 1);
-    BUTTON_init(BOARD_BUT_PIO, BOARD_BUT_PIO_ID, BOARD_BUT_PIN_MASK, BOARD_BUTTON_handler, PIO_IT_FALL_EDGE);
+  BUTTON_init(BOARD_BUT_PIO, BOARD_BUT_PIO_ID, BOARD_BUT_PIN_MASK, BOARD_BUTTON_handler, PIO_IT_FALL_EDGE);
 	BUTTON_init(OLED_BUT1_PIO, OLED_BUT1_PIO_ID, OLED_BUT1_PIN_MASK, OLED_BUTTON1_handler, PIO_IT_FALL_EDGE);
 	BUTTON_init(OLED_BUT2_PIO, OLED_BUT2_PIO_ID, OLED_BUT2_PIN_MASK, OLED_BUTTON2_handler, PIO_IT_RISE_EDGE);
 	BUTTON_init(OLED_BUT3_PIO, OLED_BUT3_PIO_ID, OLED_BUT3_PIN_MASK, OLED_BUTTON3_handler, PIO_IT_EDGE);
-	
+
 	while(1) {
 		// sleep mode
 		pmc_sleep(SLEEPMGR_SLEEP_WFI);
-		
+
 		uint32_t i = 0;
 		while(i <= 6) {
 			delay_ms(250);
