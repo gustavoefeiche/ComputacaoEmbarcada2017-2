@@ -81,14 +81,24 @@
 // From module: Part identification macros
 #include <parts.h>
 
+// From module: RTC - Real Time Clock
+#include <rtc.h>
+
 // From module: SAM FPU driver
 #include <fpu.h>
 
 // From module: SAME70 XPLD LED support enabled
 #include <led.h>
 
+// From module: Sleep manager - SAM implementation
+#include <sam/sleepmgr.h>
+#include <sleepmgr.h>
+
 // From module: System Clock Control - SAME70 implementation
 #include <sysclk.h>
+
+// From module: TC - Timer Counter
+#include <tc.h>
 
 // From module: pio_handler support enabled
 #include <pio_handler.h>
