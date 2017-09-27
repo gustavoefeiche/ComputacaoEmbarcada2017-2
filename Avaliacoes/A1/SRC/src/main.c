@@ -1,38 +1,9 @@
-/**
- *    Computacao Embarcada - Computacao - Insper
- *
- *            Avaliacao Intermediaria
- *
- * Faça um firmware que permita a um usuário no computador acessar e configurar algumas
- * informações/ modos  de operação do microcontrolador. Essas funcionalidades devem ser
- * acessadas via comunicação serial (COM). Um menu deve informar ao usuário as possibilidades
- * e os comandos que devem ser digitados para operar o embarcado.
- *
- * Funcionalidades que o firmware deve possuir :
- *
- * 1. Exibir menu
- * 2. O usuário deve ser capaz de ligar/desligar o piscar led (led da placa)
- * 3. O usuário deve ser capaz de aumentar(+2 Hz) e diminuir (-2 Hz) a frequência do led
- * 4. O usuário deve ser capaz de ler o relógio do microcontrolador.
- *
- * Utilize o programa disponível no repositório (github.com/insper/Computacao-Embarcada/Avaliacoes/A1/)
- * como ponto de parida. O código deve fazer uso de interrupções e periféricos para gerenciar a
- * comunicação com o PC e o LED.
- *
- *  ## Extra (A)
- *
- *  1. O usuário deve ser capaz de entrar com um valor de frequência para o led de forma numérica no termina.
- *
- */
-
-/************************************************************************/
-/* Includes                                                              */
-/************************************************************************/
-
+// INCLUDES
 #include "asf.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+// END INCLUDES
 
 // PERIPHERALS
 // USART
@@ -60,22 +31,23 @@ volatile uint32_t led_blink = 0;
 // END GLOBALS
 
 // PROTOTYPES
-void LED_init(int state);
-void RTC_init();
-void pin_toggle(Pio *pio, uint32_t mask);
+static void LED_init(int state);
+static void RTC_init();
+static void pin_toggle(Pio *pio, uint32_t mask);
 uint32_t usart_puts(uint8_t *pstring);
 uint32_t usart_gets(uint8_t *pstring);
 // END PROTOTYPES
 
 // FUNCTIONS
 void display_menu() {
-	usart_puts("Menu --------------------\n");
+	usart_puts("Menu ---------------------\n");
 	usart_puts("[1] Turn On/Off\n");
 	usart_puts("[2] Increase LED frequency\n");
 	usart_puts("[3] Decrease LED frequency\n");
 	usart_puts("[4] Set LED frequency\n");
 	usart_puts("[5] Time\n");
 	usart_puts("[h] Show this menu\n");
+	usart_puts("--------------------------\n\n");
 }
 
 void pin_toggle(Pio *pio, uint32_t mask){
@@ -85,7 +57,32 @@ void pin_toggle(Pio *pio, uint32_t mask){
 		pio_set(pio,mask);
 }
 
-void RTC_init() {
+uint32_t compare_strings(char a[], char b[]) {
+	int c = 0;
+	
+	while (a[c] == b[c]) {
+		if (a[c] == '\0' || b[c] == '\0')
+		break;
+		c++;
+	}
+	
+	if (a[c] == '\0' && b[c] == '\0')
+	return 0;
+	else
+	return -1;
+}
+
+uint32_t usart_puts(uint8_t *pstring) {
+	uint32_t i = 0 ;
+
+	while(*(pstring + i)){
+		usart_serial_putchar(USART_COM, *(pstring+i++));
+		while(!uart_is_tx_empty(USART_COM)){};
+	}
+	return(i);
+}
+
+static void RTC_init() {
 	/* Configura o PMC */
 	pmc_enable_periph_clk(ID_RTC);
 
@@ -96,7 +93,7 @@ void RTC_init() {
 	rtc_set_time(RTC, RTC_HOUR, RTC_MINUTE, RTC_SECOND);
 }
 
-void LED_init(int state) {
+static void LED_init(int state) {
 	pmc_enable_periph_clk(LED_PIO_ID);
 	pio_set_output(LED_PIO, LED_PIN_MASK, state, 0, 0);
 };
@@ -177,45 +174,6 @@ void USART1_Handler(void) {
 	}
 }
 
-uint32_t usart_puts(uint8_t *pstring){
-  uint32_t i = 0 ;
-
-  while(*(pstring + i)){
-    usart_serial_putchar(USART_COM, *(pstring+i++));
-    while(!uart_is_tx_empty(USART_COM)){};
-  }
-  return(i);
-}
-
-/**
- * Busca do UART uma mensagem enviada pelo computador terminada em \n
- */
-uint32_t usart_gets(uint8_t *pstring){
-  uint32_t i = 0 ;
-  usart_serial_getchar(USART_COM, (pstring+i));
-  while(*(pstring+i) != '\n'){
-    usart_serial_getchar(USART_COM, (pstring+(++i)));
-  }
-  *(pstring+i+1)= 0x00;
-  return(i);
-
-}
-
-int compare_strings(char a[], char b[]) {
-	int c = 0;
-	
-	while (a[c] == b[c]) {
-		if (a[c] == '\0' || b[c] == '\0')
-			break;
-		c++;
-	}
-	
-	if (a[c] == '\0' && b[c] == '\0')
-		return 0;
-	else
-		return -1;
-}
-
 /************************************************************************/
 /* Main Code	                                                        */
 /************************************************************************/
@@ -232,6 +190,7 @@ int main(void) {
 	TC1_init(10);
 	LED_init(0);
 	display_menu();
+	
 	led_blink = 1;
 	uint32_t tc_frequency = 10;
 
@@ -253,7 +212,8 @@ int main(void) {
 				usart_transmission_done = 0;
 				while(!usart_transmission_done);
 				usart_puts(bufferRX);
-				usart_puts("\n");
+				usart_puts("\n\n");
+				display_menu();
 				usart_transmission_done = 0;
 				TC1_init(atoi(bufferRX));
 			}
@@ -261,7 +221,7 @@ int main(void) {
 				uint32_t hour, minute, second;
 				rtc_get_time(RTC, &hour, &minute, &second);
 				uint8_t *string;
-				sprintf(string, "TIME: %d:%d:%d\n", hour, minute, second);
+				sprintf(string, "TIME: %d:%d:%d\n\n", hour, minute, second);
 				usart_puts(string);
 			}
 			else {
