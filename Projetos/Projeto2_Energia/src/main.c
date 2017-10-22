@@ -1,199 +1,158 @@
 #include "asf.h"
 #include "main.h"
 
-// GLOBALS
-volatile bool g_ledBlinkOn = false;
-
 // PROTOTYPES
-void BUT_init(void);
-void LED_init(int estado);
-void TC1_init(void);
-void RTC_init(void);
-void pin_toggle(Pio *pio, uint32_t mask);
+static void LED_init(const uint32_t ul_default_level);
+static void TC1_init(uint32_t ul_freq);
+static void WATCHDOG_init(uint8_t b_enable);
+static void pin_toggle(const Pio *p_pio, const uint32_t ul_mask);
 
 // HANDLERS
 void TC1_Handler(void) {
-	volatile uint32_t ul_dummy;
+
+  volatile uint32_t ul_dummy;
 	ul_dummy = tc_get_status(TC0, 1);
 	UNUSED(ul_dummy);
 
-  pin_toggle(LED_PIO, LED_PIN_MASK);
- }
+  if(g_led_blink)
+    pin_toggle(LED_PIO, LED_PIN_MASK);
 
-/**
- * \brief Interrupt handler for the RTC. Refresh the display.
- */
-void RTC_Handler(void)
-{
-	uint32_t ul_status = rtc_get_status(RTC);
-
-	/* Second increment interrupt */
-	if ((ul_status & RTC_SR_SEC) == RTC_SR_SEC) {
-
-		rtc_clear_status(RTC, RTC_SCCR_SECCLR);
-
-	} else {
-		/* Time or date alarm */
-		if ((ul_status & RTC_SR_ALARM) == RTC_SR_ALARM) {
-
-			rtc_clear_status(RTC, RTC_SCCR_ALRCLR);
-		}
-	}
 }
 
+void USART1_Handler(void) {
+  uint32_t ret = usart_get_status(USART_COM);
+  uint8_t c = NULL;
 
-/************************************************************************/
-/* Funcoes                                                              */
-/************************************************************************/
-
-/**
- *  Toggle pin controlado pelo PIO (out)
- */
-void pin_toggle(Pio *pio, uint32_t mask){
-   if(pio_get_output_data_status(pio, mask))
-    pio_clear(pio, mask);
-   else
-    pio_set(pio,mask);
+  if(ret & US_IER_RXRDY) {
+    usart_serial_getchar(USART_COM, &c);
+    if(c != '\n') {
+      g_bufferRX[g_count++] = c;
+    }
+    else {
+      g_bufferRX[g_count] = 0x00;
+      g_usart_transmission_done = 1;
+      g_count = 0;
+    }
+  }
 }
 
-/**
- * @Brief Inicializa o pino do BUT
- */
-void BUT_init(void){
-    /* config. pino botao em modo de entrada */
-    pmc_enable_periph_clk(BUT_PIO_ID);
-    pio_set_input(BUT_PIO, BUT_PIN_MASK, PIO_PULLUP | PIO_DEBOUNCE);
+// INITIALIZATION
+static void LED_init(const uint32_t ul_default_level) {
 
-    /* config. interrupcao em borda de descida no botao do kit */
-    /* indica funcao (but_Handler) a ser chamada quando houver uma interrupção */
-    pio_enable_interrupt(BUT_PIO, BUT_PIN_MASK);
-    pio_handler_set(BUT_PIO, BUT_PIO_ID, BUT_PIN_MASK, PIO_IT_FALL_EDGE, Button1_Handler);
+  pmc_enable_periph_clk(LED_PIO_ID);
+  pio_set_output(LED_PIO, LED_PIN_MASK, !ul_default_level, 0, 0);
 
-    /* habilita interrupçcão do PIO que controla o botao */
-    /* e configura sua prioridade                        */
-    NVIC_EnableIRQ(BUT_PIO_ID);
-    NVIC_SetPriority(BUT_PIO_ID, 1);
 };
 
-/**
- * @Brief Inicializa o pino do LED
- */
-void LED_init(int estado){
-    pmc_enable_periph_clk(LED_PIO_ID);
-    pio_set_output(LED_PIO, LED_PIN_MASK, estado, 0, 0 );
-};
+static void TC1_init(uint32_t ul_freq) {
 
-/**
- * Configura TimerCounter (TC0) para gerar uma interrupcao no canal 0-(ID_TC1)
- * a cada 250 ms (4Hz)
- */
-void TC1_init(void){
-    uint32_t ul_div;
-    uint32_t ul_tcclks;
-    uint32_t ul_sysclk = sysclk_get_cpu_hz();
+  uint32_t ul_div;
+  uint32_t ul_tcclks;
+  uint32_t ul_sysclk = sysclk_get_cpu_hz();
 
-    uint32_t channel = 1;
+  pmc_enable_periph_clk(ID_TC1);
 
-    /* Configura o PMC */
-    pmc_enable_periph_clk(ID_TC1);
+  tc_find_mck_divisor(ul_freq, ul_sysclk, &ul_div, &ul_tcclks, ul_sysclk);
+  tc_init(TC0, TC0_CHANNEL, ul_tcclks | TC0_MODE);
 
-    /** Configura o TC para operar em  4Mhz e interrupçcão no RC compare */
-    tc_find_mck_divisor(4, ul_sysclk, &ul_div, &ul_tcclks, ul_sysclk);
-    tc_init(TC0, channel, ul_tcclks | TC_CMR_WAVE);
+  // Enable TC interrupts
+  tc_write_ra(TC0, TC0_CHANNEL, 1525); // 1525 = (ul_sysclk / ul_div) / 2
+  tc_write_rc(TC0, TC0_CHANNEL, 1541); // 1541 = (ul_sysclk / ul_div) / 2
 
-    // Enable RC interrupt
-    tc_write_rc(TC0, channel, (ul_sysclk / ul_div) / 4);
+  NVIC_EnableIRQ((IRQn_Type) ID_TC1);
+  tc_enable_interrupt(TC0, TC0_CHANNEL, TC0_INTERRUPT_SOURCE);
 
-    tc_write_ra(TC0, channel, (ul_sysclk / ul_div) / 8);
-
-
-    /* Configura e ativa interrupçcão no TC canal 0 */
-    NVIC_EnableIRQ((IRQn_Type) ID_TC1);
-    tc_enable_interrupt(TC0, channel, TC_IER_CPCS | TC_IER_CPAS);
-
-    /* Inicializa o canal 0 do TC */
-    tc_start(TC0, channel);
-}
-
-/**
- * Configura o RTC para funcionar com interrupcao de alarme
- */
-void RTC_init(){
-    /* Configura o PMC */
-    pmc_enable_periph_clk(ID_RTC);
-
-    /* Default RTC configuration, 24-hour mode */
-    rtc_set_hour_mode(RTC, 0);
-
-    /* Configura data e hora manualmente */
-    rtc_set_date(RTC, YEAR, MOUNTH, DAY, WEEK);
-    rtc_set_time(RTC, HOUR, MINUTE, SECOND);
-
-    /* Configure RTC interrupts */
-    NVIC_DisableIRQ(RTC_IRQn);
-    NVIC_ClearPendingIRQ(RTC_IRQn);
-    NVIC_SetPriority(RTC_IRQn, 0);
-    NVIC_EnableIRQ(RTC_IRQn);
-
-    /* Ativa interrupcao via alarme */
-    rtc_enable_interrupt(RTC,  RTC_IER_ALREN);
+  tc_start(TC0, TC0_CHANNEL);
 
 }
 
-/**
- * \brief Configure UART console.
- */
-static void USART1_init(void){
+static void WATCHDOG_init(uint8_t b_enable) {
+
+  if(!b_enable)
+    wdt_disable(WDT);
+
+}
+
+// FUNCTIONS
+void pin_toggle(const Pio *p_pio, const uint32_t ul_mask) {
+
+  if(pio_get_output_data_status(p_pio, ul_mask))
+    pio_clear(p_pio, ul_mask);
+  else
+    pio_set(p_pio, ul_mask);
+
+}
+
+uint32_t usart_puts(uint8_t *pstring) {
+  uint32_t i = 0 ;
+
+  while(*(pstring + i)){
+    usart_serial_putchar(USART_COM, *(pstring+i++));
+    while(!uart_is_tx_empty(USART_COM)){};
+  }
+  return(i);
+}
+
+static void USART1_init(void) {
 
   /* Configura USART1 Pinos */
- sysclk_enable_peripheral_clock(ID_PIOB);
- sysclk_enable_peripheral_clock(ID_PIOA);
- pio_set_peripheral(PIOB, PIO_PERIPH_D, PIO_PB4);  // RX
- pio_set_peripheral(PIOA, PIO_PERIPH_A, PIO_PA21); // TX
- MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO4;
+  sysclk_enable_peripheral_clock(ID_PIOB);
+  sysclk_enable_peripheral_clock(ID_PIOA);
+  pio_set_peripheral(PIOB, PIO_PERIPH_D, PIO_PB4);  // RX
+  pio_set_peripheral(PIOA, PIO_PERIPH_A, PIO_PA21); // TX
+  MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO4;
 
   /* Configura opcoes USART */
   const sam_usart_opt_t usart_settings = {
     .baudrate     = 115200,
     .char_length  = US_MR_CHRL_8_BIT,
     .parity_type  = US_MR_PAR_NO,
-    .stop_bits    = US_MR_NBSTOP_1_BIT    ,
+    .stop_bits    = US_MR_NBSTOP_1_BIT,
     .channel_mode = US_MR_CHMODE_NORMAL
   };
 
   /* Ativa Clock periferico USART0 */
   sysclk_enable_peripheral_clock(USART_COM_ID);
- 	stdio_serial_init(CONF_UART, &usart_settings);
 
- }
+  /* Configura USART para operar em modo RS232 */
+  usart_init_rs232(USART_COM, &usart_settings, sysclk_get_peripheral_hz());
 
-/************************************************************************/
-/* Main Code	                                                        */
-/************************************************************************/
-int main(void){
-	/* Initialize the SAM system */
+  /* Enable the receiver and transmitter. */
+  usart_enable_tx(USART_COM);
+  usart_enable_rx(USART_COM);
+
+  usart_enable_interrupt(USART_COM, US_IER_RXRDY);
+  NVIC_EnableIRQ(USART_COM_ID);
+
+}
+
+// MAIN LOOP
+int main(void) {
+
 	sysclk_init();
+  board_init();
 
-	/* Disable the watchdog */
-	WDT->WDT_MR = WDT_MR_WDDIS;
-
-  /* Configura Leds */
-  LED_init(0);
-
-	/* Configura os botões */
-	BUT_init();
-
-  /** Configura timer 0 */
-  TC1_init();
-
-  /** Configura RTC */
-  RTC_init();
-
-  /** Inicializa USART como printf */
+  WATCHDOG_init(DISABLE);
+  LED_init(ON);
+  TC1_init(2);
   USART1_init();
 
-	while (1) {
+	while(MAINLOOP) {
+    if(g_usart_transmission_done) {
+      if(g_bufferRX[0] == 't') {
+        g_led_blink = !g_led_blink;
+
+        if(g_led_blink)
+          usart_puts("LED BLINK ON\n");
+        else
+          usart_puts("LED BLINK OFF\n");
+      }
+      g_usart_transmission_done = 0;
+    }
+
     pmc_sleep(SLEEPMGR_SLEEP_WFI);
 	}
+
+  return 0;
 
 }

@@ -84,9 +84,6 @@
 // From module: Part identification macros
 #include <parts.h>
 
-// From module: RTC - Real Time Clock
-#include <rtc.h>
-
 // From module: SAM FPU driver
 #include <fpu.h>
 
@@ -114,6 +111,9 @@
 
 // From module: USART - Univ. Syn Async Rec/Trans
 #include <usart.h>
+
+// From module: WDT - Watchdog Timer
+#include <wdt.h>
 
 // From module: pio_handler support enabled
 #include <pio_handler.h>

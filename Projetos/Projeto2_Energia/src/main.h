@@ -1,26 +1,31 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
-#define YEAR        2017
-#define MOUNTH      3
-#define DAY         27
-#define WEEK        13
-#define HOUR        9
-#define MINUTE      5
-#define SECOND      0
+#define MAINLOOP 1
+#define ON 1
+#define OFF 0
+#define ENABLE 1
+#define DISABLE 0
 
 #define LED_PIO_ID		ID_PIOC
 #define LED_PIO       PIOC
 #define LED_PIN		    13
-#define LED_PIN_MASK  (1<<LED_PIN)
-
-#define BUT_PIO_ID      ID_PIOA
-#define BUT_PIO         PIOA
-#define BUT_PIN		    11
-#define BUT_PIN_MASK    (1 << BUT_PIN)
-#define BUT_DEBOUNCING_VALUE  79
+#define LED_PIN_MASK  (1 << LED_PIN)
 
 #define USART_COM     USART1
 #define USART_COM_ID  ID_USART1
+
+#define TC0_CHANNEL 1
+#define TC0_MODE TC_CMR_WAVE
+#define TC0_INTERRUPT_SOURCE (TC_IER_CPCS | TC_IER_CPAS)
+
+// FLAGS
+volatile uint32_t g_led_blink = 1;
+volatile uint32_t g_usart_transmission_done = 0;
+
+// GLOBALS
+uint32_t g_count = 0;
+uint8_t g_bufferRX[3];
+uint8_t g_bufferTX[3];
 
 #endif

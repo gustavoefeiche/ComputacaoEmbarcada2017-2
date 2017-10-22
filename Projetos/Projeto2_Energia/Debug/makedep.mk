@@ -28,13 +28,13 @@ src\ASF\sam\drivers\pmc\pmc.c
 
 src\ASF\sam\drivers\pmc\sleep.c
 
-src\ASF\sam\drivers\rtc\rtc.c
-
 src\ASF\sam\drivers\tc\tc.c
 
 src\ASF\sam\drivers\uart\uart.c
 
 src\ASF\sam\drivers\usart\usart.c
+
+src\ASF\sam\drivers\wdt\wdt.c
 
 src\ASF\sam\utils\cmsis\same70\source\templates\gcc\startup_same70.c
 
