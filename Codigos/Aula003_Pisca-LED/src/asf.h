@@ -68,6 +68,9 @@
 // From module: Interrupt management - SAM implementation
 #include <interrupt.h>
 
+// From module: MATRIX - Bus Matrix
+#include <matrix.h>
+
 // From module: MPU - Memory Protect Unit
 #include <mpu.h>
 
@@ -87,8 +90,23 @@
 // From module: SAME70 XPLD LED support enabled
 #include <led.h>
 
+// From module: Standard serial I/O (stdio) - SAM implementation
+#include <stdio_serial.h>
+
 // From module: System Clock Control - SAME70 implementation
 #include <sysclk.h>
+
+// From module: TC - Timer Counter
+#include <tc.h>
+
+// From module: UART - Univ. Async Rec/Trans
+#include <uart.h>
+
+// From module: USART - Serial interface - SAM implementation for devices with both UART and USART
+#include <serial.h>
+
+// From module: USART - Univ. Syn Async Rec/Trans
+#include <usart.h>
 
 // From module: pio_handler support enabled
 #include <pio_handler.h>

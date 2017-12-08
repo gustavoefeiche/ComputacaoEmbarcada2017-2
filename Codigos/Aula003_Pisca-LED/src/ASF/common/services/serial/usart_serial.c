@@ -1,9 +1,11 @@
 /**
+ *
  * \file
  *
- * \brief Board configuration.
+ * \brief USART Serial driver functions.
  *
- * Copyright (c) 2015-2016 Atmel Corporation. All rights reserved.
+ *
+ * Copyright (c) 2010-2015 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -43,20 +45,43 @@
 /*
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
+#include "serial.h"
 
-#ifndef CONF_BOARD_H_INCLUDED
-#define CONF_BOARD_H_INCLUDED
+/**
+ * \brief Send a sequence of bytes to USART device
+ *
+ * \param usart  Base address of the USART instance.
+ * \param data   Data buffer to read
+ * \param len    Length of data
+ *
+ */
+status_code_t usart_serial_write_packet(usart_if usart, const uint8_t *data,
+		size_t len)
+{
+	while (len) {
+		usart_serial_putchar(usart, *data);
+		len--;
+		data++;
+	}
+	return STATUS_OK;
+}
 
-/* Enable ICache and DCache */
-#define CONF_BOARD_ENABLE_CACHE
 
-/** Enable Com Port. */
-#define CONF_BOARD_UART_CONSOLE
-
-/** define BOARD_NO_PUSHBUTTON_2. */
-#define BOARD_NO_PUSHBUTTON_2
-
-/** define BOARD_NO_LED_1. */
-#define BOARD_NO_LED_1
-
-#endif /* CONF_BOARD_H_INCLUDED */
+/**
+ * \brief Receive a sequence of bytes from USART device
+ *
+ * \param usart  Base address of the USART instance.
+ * \param data   Data buffer to write
+ * \param len    Length of data
+ *
+ */
+status_code_t usart_serial_read_packet(usart_if usart, uint8_t *data,
+		size_t len)
+{
+	while (len) {
+		usart_serial_getchar(usart, data);
+		len--;
+		data++;
+	}
+	return STATUS_OK;
+}
