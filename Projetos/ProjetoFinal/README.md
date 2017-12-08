@@ -10,4 +10,9 @@ A leitura do LDR é realizada pelo periférico AFEC (Analog Front-End Controller
 
 ## Utilização
 Para utilizar o sistema, o usuário deve configurar no arquivo ```main.h``` o SSID (nome) da rede Wi-Fi que deseja se conectar e a senha desta rede. O IP colocado já está online, porém fica a critério do usuário escolher outro endereço para o servidor caso possua o seu próprio. É necessário também escolher a porta que deseja conectar.
-Em seguida, basta ligar a placa ao computador e compilar o projeto. O sistema começará a funcionar imediatamente.
+Em seguida, basta ligar a placa ao computador e compilar o projeto. O sistema começará a funcionar imediatamente. Ao acessar a página inicial, três botões aparecerão. Cada um controla o estado de um LED.
+
+## Imagens do Esquema Elétrico
+![b](https://i.imgur.com/MnFmZLe.jpg)
+![c](https://i.imgur.com/Zrorpru.jpg)
+![d](https://i.imgur.com/8rFFcGe.jpg)
