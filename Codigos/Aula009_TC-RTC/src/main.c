@@ -143,7 +143,7 @@ void RTC_init(void) {
 	NVIC_SetPriority(RTC_IRQn, 0);
 	NVIC_EnableIRQ(RTC_IRQn);
 
-	rtc_enable_interrupt(RTC,  RTC_IER_ALREN);
+	rtc_enable_interrupt(RTC,  RTC_IER_SECEN);
 }
 
 /************************************************************************/
@@ -276,11 +276,11 @@ void RTC_Handler(void) {
 			rtc_clear_status(RTC, RTC_SCCR_ALRCLR);
 		}
 	}
-	
+
 	uint32_t ul_year, ul_month, ul_day, ul_week, ul_hour, ul_minute, ul_second;
 	rtc_get_date(RTC, &ul_year, &ul_month, &ul_day, &ul_week);
 	rtc_get_time(RTC, &ul_hour, &ul_minute, &ul_second);
-	
+
 	rtc_set_date_alarm(RTC, 1, ul_month, 1, ul_day);
 	rtc_set_time_alarm(RTC, 1, ul_hour, 1, ul_minute + 1, 1, ul_second);
 }
@@ -307,17 +307,17 @@ int main(void) {
 	LED_init(OLED_LED1_PIO, OLED_LED1_PIO_ID, OLED_LED1_PIN_MASK, ON);
 	LED_init(OLED_LED2_PIO, OLED_LED2_PIO_ID, OLED_LED2_PIN_MASK, ON);
 	LED_init(OLED_LED3_PIO, OLED_LED3_PIO_ID, OLED_LED3_PIN_MASK, ON);
-	
+
 	BUT_init(BOARD_BUT_PIO, BOARD_BUT_PIO_ID, BOARD_BUT_PIN_MASK, BOARD_BUTTON_handler);
 	BUT_init(OLED_BUT1_PIO, OLED_BUT1_PIO_ID, OLED_BUT1_PIN_MASK, OLED_BUTTON1_handler);
 	BUT_init(OLED_BUT2_PIO, OLED_BUT2_PIO_ID, OLED_BUT2_PIN_MASK, OLED_BUTTON2_handler);
 	BUT_init(OLED_BUT3_PIO, OLED_BUT3_PIO_ID, OLED_BUT3_PIN_MASK, OLED_BUTTON3_handler);
-	
+
 	TC_init(TC0, ID_TC0, 2);
 	TC_init(TC1, ID_TC3, 8);
 	TC_init(TC2, ID_TC6, 11);
 	TC_init(TC3, ID_TC9, 17);
-	
+
 	RTC_init();
 
 	rtc_set_date_alarm(RTC, 1, RTC_MONTH, 1, RTC_DAY);

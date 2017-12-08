@@ -1,0 +1,1 @@
+cd C:\Users\Gustavo\Documents\Insper\6\CPE_Computacao_Embarcada\Git\ComputacaoEmbarcada2017-2\Projetos\ProjetoFinal\server
